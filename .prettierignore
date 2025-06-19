@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+.next
+.out
+
+# Build outputs
+dist
+build
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IDE and OS files
+.vscode
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env*
+
+# Generated files
+*.d.ts 
