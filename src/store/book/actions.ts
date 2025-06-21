@@ -1,8 +1,3 @@
 import { bookSlice } from './slice';
 
-export const {
-  timeSlotBooked,
-  timeSlotNotBooked,
-  bookTimeSlot,
-  refreshTimeSlots,
-} = bookSlice.actions;
+export const { refreshSlots, syncBookingSlot } = bookSlice.actions;

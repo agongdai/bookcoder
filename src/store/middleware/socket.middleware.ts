@@ -4,12 +4,8 @@ import { setLive, setNTryTimes } from '@/store/wss/actions';
 import { selectWssNTryTimes } from '@/store/wss/selectors';
 
 import { Socket } from '../Socket';
-import { BookTimeSlotPayload, BookState } from '@/types/book';
-import {
-  refreshTimeSlots,
-  timeSlotBooked,
-  timeSlotNotBooked,
-} from '@/store/book/actions';
+import { Slot } from '@/types/book';
+import { refreshSlots, syncBookingSlot } from '@/store/book/actions';
 
 export const socketMiddleware =
   (socket: Socket) => (params: any) => (next: any) => (action: any) => {
@@ -20,7 +16,9 @@ export const socketMiddleware =
     switch (type) {
       case 'socket/connect':
         console.log('connecting to socket');
-        socket.connect(process.env.NEXT_PUBLIC_API_WSS || '');
+        socket.connect(
+          process.env.NEXT_PUBLIC_API_WSS || 'ws://localhost:8080'
+        );
 
         socket.on('open', () => {
           console.log('socket opened');
@@ -32,15 +30,15 @@ export const socketMiddleware =
           const data = JSON.parse(message?.data || '{}');
 
           if (data?.event === 'booked') {
-            dispatch(timeSlotBooked(data as BookTimeSlotPayload));
+            dispatch(syncBookingSlot(data.payload as Slot));
           }
 
-          if (data?.event === 'not-booked') {
-            dispatch(timeSlotNotBooked(data as number));
+          if (data?.event === 'error') {
+            dispatch(syncBookingSlot(data.payload as Slot));
           }
 
-          if (data?.event === 'update') {
-            dispatch(refreshTimeSlots(data as BookState));
+          if (data?.event === 'sync') {
+            dispatch(refreshSlots(data.payload as Slot[]));
           }
         });
 
@@ -55,6 +53,19 @@ export const socketMiddleware =
       case 'socket/disconnect':
         if (socket.disconnect()) {
           dispatch(setLive(false));
+        }
+        break;
+
+      case 'socket/bookSlot':
+        console.log('bookSlot', action.payload);
+        if (socket.isConnected) {
+          socket.send({
+            event: 'bookSlot',
+            payload: {
+              slotId: action.payload.slotId,
+              userEmail: action.payload.userEmail,
+            },
+          });
         }
         break;
 
